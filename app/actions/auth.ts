@@ -10,6 +10,43 @@ export async function signInAnonymously() {
   return { ok: true };
 }
 
+export async function signUpWithEmail(email: string, password: string) {
+  const supabase = await createClient();
+  if (!supabase) return { error: "Supabaseが設定されていません。" };
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || ""}/auth/callback` },
+  });
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
+export async function signInWithEmail(email: string, password: string) {
+  const supabase = await createClient();
+  if (!supabase) return { error: "Supabaseが設定されていません。" };
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
+export async function signOut() {
+  const supabase = await createClient();
+  if (!supabase) return { error: "Supabaseが設定されていません。" };
+  await supabase.auth.signOut();
+  return { ok: true };
+}
+
+export async function resetPassword(email: string) {
+  const supabase = await createClient();
+  if (!supabase) return { error: "Supabaseが設定されていません。" };
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || ""}/auth/reset-password`,
+  });
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
 export async function getSession() {
   const supabase = await createClient();
   if (!supabase) return null;

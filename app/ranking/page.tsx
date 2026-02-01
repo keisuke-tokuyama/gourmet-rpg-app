@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Trophy, Sparkles, BookOpen } from "lucide-react";
 import { getArticleRanking, getReviewRanking } from "@/app/actions/ranking";
+import { getCurrentUserId } from "@/app/actions/auth";
 
 export default async function RankingPage() {
+  const userId = await getCurrentUserId();
   const [articleRanking, reviewRanking] = await Promise.all([
     getArticleRanking(10),
     getReviewRanking(10),
@@ -23,7 +25,24 @@ export default async function RankingPage() {
             <Trophy className="w-6 h-6" strokeWidth={1.5} />
             ランキング
           </h1>
-          <div className="w-10" />
+          <div className="flex items-center gap-2">
+            {userId ? (
+              <Link
+                href="/profile"
+                className="p-2 text-foreground/70 hover:text-foreground transition-colors"
+                aria-label="プロフィール"
+              >
+                <User className="w-5 h-5" strokeWidth={1.5} />
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="px-3 py-1.5 text-sm text-foreground/70 hover:text-foreground border border-border rounded-sm transition-colors"
+              >
+                ログイン
+              </Link>
+            )}
+          </div>
         </header>
 
         {/* ベストフォト賞 */}
