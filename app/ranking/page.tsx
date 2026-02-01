@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Trophy, Sparkles, BookOpen } from "lucide-react";
+import { Trophy, Sparkles, BookOpen, User } from "lucide-react";
 import { getArticleRanking, getReviewRanking } from "@/app/actions/ranking";
 import { getCurrentUserId } from "@/app/actions/auth";
 
