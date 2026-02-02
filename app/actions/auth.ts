@@ -2,32 +2,61 @@
 
 import { createClient } from "@/lib/supabase/server";
 
+function getRedirectUrl(): string | undefined {
+  const base = process.env.NEXT_PUBLIC_APP_URL;
+  if (!base || typeof base !== "string" || !base.startsWith("http")) return undefined;
+  return `${base.replace(/\/$/, "")}/auth/callback`;
+}
+
 export async function signInAnonymously() {
-  const supabase = await createClient();
-  if (!supabase) return { error: "Supabaseが設定されていません。" };
-  const { data, error } = await supabase.auth.signInAnonymously();
-  if (error) return { error: error.message };
-  return { ok: true };
+  try {
+    const supabase = await createClient();
+    if (!supabase) return { error: "Supabaseが設定されていません。環境変数 NEXT_PUBLIC_SUPABASE_URL と NEXT_PUBLIC_SUPABASE_ANON_KEY を確認してください。" };
+    const { error } = await supabase.auth.signInAnonymously();
+    if (error) return { error: error.message };
+    return { ok: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: msg.includes("fetch") ? "Supabase に接続できません。URL・キー・ネットワークを確認してください。" : msg };
+  }
 }
 
 export async function signUpWithEmail(email: string, password: string) {
-  const supabase = await createClient();
-  if (!supabase) return { error: "Supabaseが設定されていません。" };
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || ""}/auth/callback` },
-  });
-  if (error) return { error: error.message };
-  return { ok: true };
+  try {
+    const supabase = await createClient();
+    if (!supabase) return { error: "Supabaseが設定されていません。環境変数 NEXT_PUBLIC_SUPABASE_URL と NEXT_PUBLIC_SUPABASE_ANON_KEY を確認してください。" };
+
+    const redirectTo = getRedirectUrl();
+    const { error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: redirectTo ? { emailRedirectTo: redirectTo } : undefined,
+    });
+    if (error) return { error: error.message };
+    return { ok: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("fetch") || msg.includes("Fetch") || msg.includes("network")) {
+      return { error: "Supabase に接続できません。環境変数（NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY）と Supabase ダッシュボードの設定を確認してください。" };
+    }
+    return { error: msg };
+  }
 }
 
 export async function signInWithEmail(email: string, password: string) {
-  const supabase = await createClient();
-  if (!supabase) return { error: "Supabaseが設定されていません。" };
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: error.message };
-  return { ok: true };
+  try {
+    const supabase = await createClient();
+    if (!supabase) return { error: "Supabaseが設定されていません。環境変数 NEXT_PUBLIC_SUPABASE_URL と NEXT_PUBLIC_SUPABASE_ANON_KEY を確認してください。" };
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (error) return { error: error.message };
+    return { ok: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("fetch") || msg.includes("Fetch") || msg.includes("network")) {
+      return { error: "Supabase に接続できません。環境変数とネットワークを確認してください。" };
+    }
+    return { error: msg };
+  }
 }
 
 export async function signOut() {
@@ -38,13 +67,19 @@ export async function signOut() {
 }
 
 export async function resetPassword(email: string) {
-  const supabase = await createClient();
-  if (!supabase) return { error: "Supabaseが設定されていません。" };
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || ""}/auth/reset-password`,
-  });
-  if (error) return { error: error.message };
-  return { ok: true };
+  try {
+    const supabase = await createClient();
+    if (!supabase) return { error: "Supabaseが設定されていません。" };
+    const redirectTo = getRedirectUrl();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectTo ? redirectTo.replace("/auth/callback", "/auth/reset-password") : undefined,
+    });
+    if (error) return { error: error.message };
+    return { ok: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: msg.includes("fetch") ? "Supabase に接続できません。" : msg };
+  }
 }
 
 export async function getSession() {

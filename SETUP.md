@@ -32,3 +32,20 @@ pnpm dev
 ```
 
 http://localhost:3000 でアプリにアクセスできます。
+
+## トラブルシューティング: 新規登録で「fetch error」が出る場合
+
+1. **環境変数（Vercel / .env.local）**
+   - `NEXT_PUBLIC_SUPABASE_URL`: `https://xxxxx.supabase.co` 形式（`https://` 必須、末尾スラッシュなし）
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Project Settings → API の **anon public** をそのままコピー
+   - Vercel の場合は **Settings → Environment Variables** で上記を設定し、再デプロイ
+
+2. **Supabase ダッシュボード**
+   - **Authentication** → **Providers** → **Email** が有効か確認
+   - **Project Settings** → **API** で Project URL と anon key が正しいか確認
+   - 無料枠でプロジェクトが一時停止していないか確認
+
+3. **リダイレクト URL（メール確認用）**
+   - **Authentication** → **URL Configuration** → **Redirect URLs** に  
+     `https://あなたのドメイン/auth/callback` を追加
+   - Vercel なら `NEXT_PUBLIC_APP_URL` に本番 URL を設定（例: `https://xxx.vercel.app`）

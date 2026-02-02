@@ -2,9 +2,11 @@ import { createServerClient, type SupabaseClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export async function createClient(): Promise<SupabaseClient | null> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  let url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
   if (!url || !key) return null;
+  if (!url.startsWith("http")) url = `https://${url}`;
+  url = url.replace(/\/+$/, "");
 
   const cookieStore = await cookies();
 
